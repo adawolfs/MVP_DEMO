@@ -1,0 +1,107 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+//
+if(getCurrentFlavor() == "kotlin"){
+    apply plugin: 'kotlin-kapt'
+} else {
+    apply plugin: 'com.neenbedankt.android-apt'
+}
+
+
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "com.adawolfs.mvp_java"
+        minSdkVersion 17
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    /*sourceSets {
+        main.java.srcDirs += 'src/main/java'
+        //main.java.srcDirs += 'src/kt/kotlin'
+    }*/
+    productFlavors {
+        kotlin {
+            minSdkVersion 17
+            applicationId 'com.adawolfs.mvp_kotlin'
+            targetSdkVersion 25
+            testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+            versionCode 1
+            versionName '1.0'
+        }
+
+        javax {
+            minSdkVersion 17
+            applicationId 'com.adawolfs.mvp_java'
+            targetSdkVersion 25
+            testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+            versionCode 1
+            versionName '1.0'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    //DAGGER
+    compile 'com.google.dagger:dagger:2.7'
+
+    if(getCurrentFlavor() == "kotlin"){
+        kapt 'com.google.dagger:dagger-compiler:2.7'
+    } else {
+        apt 'com.google.dagger:dagger-compiler:2.7'
+    }
+
+    provided 'javax.annotation:jsr250-api:1.0'
+
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:design:25.1.0'
+    testCompile 'junit:junit:4.12'
+
+    //Kotlin
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.anko:anko-common:0.9"
+}
+repositories {
+    mavenCentral()
+}
+
+
+def getCurrentFlavor() {
+    Gradle gradle = getGradle()
+    String  tskReqStr = gradle.getStartParameter().getTaskRequests().toString()
+
+    Pattern pattern;
+
+    if( tskReqStr.contains( "assemble" ) )
+        pattern = Pattern.compile("assemble(\\w+)(Release|Debug)")
+    else
+        pattern = Pattern.compile("generate(\\w+)(Release|Debug)")
+
+    Matcher matcher = pattern.matcher( tskReqStr )
+
+    if( matcher.find() ) {
+        String flavor = matcher.group(1).toLowerCase()
+        return flavor
+    } else {
+        println "NO MATCH FOUND"
+        return "";
+    }
+}
